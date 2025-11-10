@@ -1,0 +1,96 @@
+/* src/styles.css - app, game, and card styles (single file) */
+
+:root{
+  --bg1: #0b3d24;
+  --bg2: #072616;
+  --card-white: #fff;
+  --muted: #bfc8c0;
+  --gold: #d4a017;
+}
+
+*{box-sizing:border-box}
+html,body,#root{height:100%;margin:0;font-family:Inter,system-ui,Arial,sans-serif;background:linear-gradient(180deg,var(--bg1),var(--bg2));color:#fff}
+
+.app{max-width:1100px;margin:24px auto;padding:18px}
+.app__header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.app__header h1{margin:0;font-size:1.6rem}
+.balance{background:rgba(255,255,255,0.06);padding:8px 12px;border-radius:8px}
+
+.app__main{display:grid;grid-template-columns:1fr 320px;gap:18px}
+.history{background:rgba(0,0,0,0.18);padding:12px;border-radius:12px;height:100%}
+.history__list{display:flex;flex-direction:column;gap:8px;max-height:420px;overflow:auto;padding-top:6px}
+.history__item{display:flex;justify-content:space-between;padding:8px;border-radius:8px;background:rgba(255,255,255,0.02)}
+.outcome{font-weight:600;padding:2px 8px;border-radius:6px}
+.outcome--win{background:#0f5132;color:#b6ffdc}
+.outcome--lose{background:#58151a;color:#ffb6b6}
+.outcome--tie{background:#343a40;color:#e6e6e6}
+.outcome--blackjack{background:#6f4e03;color:#fff7d6}
+
+/* Game container */
+.game{background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));padding:16px;border-radius:12px}
+.game__header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.muted{color:var(--muted);font-size:0.9rem}
+
+/* Table */
+.table{display:flex;flex-direction:column;gap:16px;padding:8px}
+.dealer,.player{display:flex;flex-direction:column;align-items:center}
+.label{font-size:0.95rem;margin-bottom:8px;color:var(--muted)}
+.hand{display:flex;gap:12px;align-items:flex-end;min-height:140px}
+.score{margin-top:8px;color:var(--muted)}
+
+/* Controls */
+.controls{display:flex;gap:10px;justify-content:center;margin-top:12px}
+.btn{background:linear-gradient(180deg,#222,#111);border:1px solid rgba(255,255,255,0.06);padding:10px 16px;border-radius:10px;color:#fff;cursor:pointer;font-weight:600}
+.btn:disabled{opacity:0.45;cursor:not-allowed}
+.btn--ghost{background:transparent;border:1px dashed rgba(255,255,255,0.06)}
+
+/* Status */
+.status{margin-top:12px;text-align:center;padding:8px;color:var(--muted)}
+
+/* Card styles */
+.card{
+  width:86px;
+  height:120px;
+  border-radius:10px;
+  background:var(--card-white);
+  color:#000;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  padding:8px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+  transform-origin:center;
+  transition:transform 180ms ease, box-shadow 180ms ease;
+  position:relative;
+}
+.card:hover{transform:translateY(-8px);box-shadow:0 12px 28px rgba(0,0,0,0.6)}
+.card__corner{display:flex;flex-direction:column;font-weight:700}
+.card__corner--top{align-items:flex-start}
+.card__corner--bottom{align-items:flex-end;transform:rotate(180deg)}
+.rank{font-size:16px}
+.suit{font-size:16px}
+.card__center{display:flex;align-items:center;justify-content:center;flex:1;font-size:34px}
+.suit.large{font-size:36px;opacity:0.95}
+
+/* red suits */
+.card .suit{color:#000}
+.card .suit:contains("♥"), .card .suit:contains("♦"){}
+/* card back design */
+.card--back{
+  background: linear-gradient(45deg,#0d2b1a,#0b1f14);
+  color:transparent;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.card__backpattern{
+  width:72px;height:96px;border-radius:8px;background:
+    conic-gradient(from 90deg at 50% 50%, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+  opacity:0.9;
+}
+
+/* Responsive */
+@media (max-width:900px){
+  .app__main{grid-template-columns:1fr}
+  .hand{flex-wrap:wrap;justify-content:center}
+}
