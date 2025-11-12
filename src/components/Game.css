@@ -113,3 +113,47 @@ button:hover {
   margin-top: 25px;
   font-size: 1.3rem;
 }
+.result-banner {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #fff;
+  padding: 15px 30px;
+  border-radius: 10px;
+  backdrop-filter: blur(6px);
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.7);
+  z-index: 10;
+}
+
+.result-banner.win {
+  background: rgba(67, 160, 71, 0.8);
+}
+
+.result-banner.lose {
+  background: rgba(229, 57, 53, 0.8);
+}
+
+.result-banner.bust {
+  background: rgba(255, 111, 0, 0.8);
+}
+
+.result-banner.push {
+  background: rgba(33, 150, 243, 0.8);
+}
+
+.balance.win {
+  color: #43a047;
+  text-shadow: 0 0 8px #43a047;
+}
+
+.balance.lose {
+  color: #e53935;
+  text-shadow: 0 0 8px #e53935;
+}
+
+.balance.bust {
+  color: #ff7043;
+}

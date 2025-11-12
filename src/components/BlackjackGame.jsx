@@ -28,12 +28,69 @@ const calculateHandValue = (hand) => {
   return total;
 };
 
-const recommendMove = (playerTotal, dealerVisibleValue) => {
-  if (playerTotal <= 11) return { action: "Hit", confidence: 90 };
-  if (playerTotal >= 17) return { action: "Stand", confidence: 95 };
-  if (dealerVisibleValue >= 7) return { action: "Hit", confidence: 75 };
-  return { action: "Stand", confidence: 75 };
+// Simulate Blackjack move recommendation based on bust probability
+const recommendMove = (playerHand, dealerVisibleValue) => {
+  const playerTotal = calculateHandValue(playerHand);
+
+  // All possible next cards
+  const allCards = [
+    "A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K",
+
+
+
+
+  ];
+
+  // Estimate bust probability if we "Hit"
+  let busts = 0;
+  allCards.forEach((card) => {
+    let val = getCardNumericValue(card);
+    // Handle Ace as 1 or 11 optimally
+    if (val === 11 && playerTotal + 11 > 21) val = 1;
+    const newTotal = playerTotal + val;
+    if (newTotal > 21) busts++;
+  });
+
+  const bustProbability = (busts / allCards.length) * 100;
+
+  // Decide action based on bust probability + dealer's visible card strength
+  let action = "";
+  let confidence = 0;
+  let reason = "";
+
+  if (bustProbability <= 40) {
+    action = "Hit";
+    confidence = Math.round(100 - bustProbability / 2); // higher safety → higher confidence
+    reason = `Bust probability is low (${bustProbability.toFixed(
+      1
+    )}%), so it's safe to draw another card.`;
+  } else if (bustProbability >= 60) {
+    action = "Stand";
+    confidence = Math.round(bustProbability); // high bust risk → confident stand
+    reason = `High bust probability (${bustProbability.toFixed(
+      1
+    )}%) — safer to stand.`;
+  } else {
+    // Moderate zone (40–60%)
+    if (dealerVisibleValue >= 7) {
+      action = "Hit";
+      confidence = 65;
+      reason = `Dealer shows a strong card (${dealerVisibleValue}), you may need to risk a hit.`;
+    } else {
+      action = "Stand";
+      confidence = 70;
+      reason = `Dealer has a weak card (${dealerVisibleValue}), standing may be better.`;
+    }
+  }
+
+  return {
+    action,
+    confidence,
+    bustProbability: bustProbability.toFixed(1),
+    reason,
+  };
 };
+
 
 const shuffleDeck = () => {
   const deck = [];
@@ -55,6 +112,7 @@ export default function BlackjackGame() {
   const [round, setRound] = useState(1);
   const [bet, setBet] = useState(100);
   const [recommendation, setRecommendation] = useState(null);
+  const [resultType, setResultType] = useState(null); // "win" | "lose" | "push" | "bust"
 
   useEffect(() => {
     startNewRound();
@@ -64,7 +122,7 @@ export default function BlackjackGame() {
     if (gameOver) return;
     const playerTotal = calculateHandValue(playerHand);
     const dealerVisible = dealerHand[0]?.value;
-    const rec = recommendMove(playerTotal, getCardNumericValue(dealerVisible));
+    const rec = recommendMove(playerHand, getCardNumericValue(dealerVisible));
     if (playerTotal <= 21) setRecommendation(rec);
     else setRecommendation(null);
   }, [playerHand, dealerHand, gameOver]);
@@ -83,6 +141,7 @@ export default function BlackjackGame() {
     setMessage("");
     setGameOver(false);
     setRecommendation(null);
+    setResultType(null);
   };
 
   const hit = () => {
@@ -94,10 +153,11 @@ export default function BlackjackGame() {
     setDeck(d);
     const playerTotal = calculateHandValue(newPlayer);
     if (playerTotal > 21) {
-      setMessage(`💥 You busted (${playerTotal}). Dealer wins.`);
+      setMessage(` You busted (${playerTotal}). Dealer wins.`);
       setBalance((b) => b - bet);
       setGameOver(true);
       setRound((r) => r + 1);
+      setResultType("bust");
     }
   };
 
@@ -114,13 +174,16 @@ export default function BlackjackGame() {
     const dealerTotal = calculateHandValue(dealer);
 
     if (dealerTotal > 21 || playerTotal > dealerTotal) {
-      setMessage(`🏆 You win! (${playerTotal} vs ${dealerTotal})`);
+      setMessage(` You win! (${playerTotal} vs ${dealerTotal})`);
       setBalance((b) => b + bet);
+      setResultType("win");
     } else if (playerTotal < dealerTotal) {
-      setMessage(`😔 Dealer wins (${dealerTotal} vs ${playerTotal})`);
+      setMessage(` Dealer wins (${dealerTotal} vs ${playerTotal})`);
       setBalance((b) => b - bet);
+      setResultType("lose");
     } else {
-      setMessage(`🤝 Push (${playerTotal} = ${dealerTotal})`);
+      setMessage(` Push (${playerTotal} = ${dealerTotal})`);
+      setResultType("push");
     }
     setGameOver(true);
     setRound((r) => r + 1);
@@ -133,9 +196,15 @@ export default function BlackjackGame() {
       </header>
 
       <div className="stats">
-        <div className="stat">💰 Balance: ${balance}</div>
-        <div className="stat bet">🎲 Bet: ${bet}</div>
-        <div className="stat round">🌀 Round: {round}</div>
+        <motion.div
+          className={`stat balance ${resultType}`}
+          animate={{ scale: resultType ? 1.2 : 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          Balance: ${balance}
+        </motion.div>
+        <div className="stat bet">Bet: ${bet}</div>
+        <div className="stat round">Round: {round}</div>
       </div>
 
       <div className="table">
@@ -198,8 +267,12 @@ export default function BlackjackGame() {
               className="recommendation"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
+              style={{
+                color:
+                  recommendation.action === "Hit" ? "#e53935" : "#43a047",
+              }}
             >
-              💡 Recommended Move:{" "}
+               Recommended Move:{" "}
               <strong>
                 {recommendation.action} ({recommendation.confidence}%)
               </strong>
@@ -212,10 +285,10 @@ export default function BlackjackGame() {
         {!gameOver ? (
           <>
             <motion.button whileTap={{ scale: 0.9 }} onClick={hit}>
-              ✋ Hit
+               Hit
             </motion.button>
             <motion.button whileTap={{ scale: 0.9 }} onClick={stand}>
-              🧍 Stand
+               Stand
             </motion.button>
           </>
         ) : (
@@ -224,6 +297,27 @@ export default function BlackjackGame() {
           </motion.button>
         )}
       </div>
+
+      {/* Animated round result */}
+      <AnimatePresence>
+        {resultType && (
+          <motion.div
+            className={`result-banner ${resultType}`}
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1.2, opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ type: "spring", stiffness: 120 }}
+          >
+            {resultType === "win"
+              ? " You Win!"
+              : resultType === "lose"
+              ? " Dealer Wins!"
+              : resultType === "bust"
+              ? " Busted!"
+              : " Push!"}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <motion.p
         className="message"
